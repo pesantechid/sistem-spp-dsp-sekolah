@@ -1,0 +1,47 @@
+<%- include('../partials/header') %>
+<div class="page-header">
+  <h1>Siswa</h1>
+  <a href="/siswa/new" class="btn">+ Tambah Siswa</a>
+</div>
+
+<div class="toolbar">
+  <form method="get" action="/siswa" class="inline-form">
+    <input type="text" name="q" placeholder="Cari nama siswa..." value="<%= q %>" />
+    <select name="kelasId" onchange="this.form.submit()">
+      <option value="">Semua Kelas</option>
+      <% kelasList.forEach(k => { %>
+        <option value="<%= k.id %>" <%= kelasId === k.id ? 'selected' : '' %>><%= k.jenjang.nama %> - <%= k.nama %></option>
+      <% }) %>
+    </select>
+    <button type="submit" class="btn small secondary">Cari</button>
+  </form>
+  <a href="/siswa/export?q=<%= q %>&kelasId=<%= kelasId || '' %>" class="btn small secondary">Export CSV</a>
+</div>
+
+<div class="panel" style="padding:0">
+  <% if (!tahunAjaranAktif) { %>
+    <div class="empty-state">Belum ada tahun ajaran aktif.</div>
+  <% } else if (siswaList.length === 0) { %>
+    <div class="empty-state">Tidak ada siswa yang cocok.</div>
+  <% } else { %>
+  <table>
+    <thead>
+      <tr><th>Nama</th><th>NIS</th><th>Kelas</th><th>Wali</th><th>Status</th><th></th></tr>
+    </thead>
+    <tbody>
+      <% siswaList.forEach(s => { %>
+        <% const sk = s.siswaKelas[0]; %>
+        <tr>
+          <td><a href="/siswa/<%= s.id %>"><%= s.namaLengkap %></a></td>
+          <td><%= s.nis || '-' %></td>
+          <td><%= sk ? `${sk.kelas.jenjang.nama} - ${sk.kelas.nama}` : '-' %></td>
+          <td><%= s.namaWali || '-' %></td>
+          <td><span class="badge <%= s.status === 'AKTIF' ? 'aktif' : 'nonaktif' %>"><%= s.status %></span></td>
+          <td><a href="/siswa/<%= s.id %>" class="btn small secondary">Detail</a></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+  <% } %>
+</div>
+<%- include('../partials/footer') %>

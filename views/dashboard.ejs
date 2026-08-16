@@ -1,0 +1,102 @@
+<%- include('partials/header') %>
+<div class="page-header">
+  <h1>Dashboard</h1>
+</div>
+
+<% if (!tahunAktif) { %>
+  <div class="panel">
+    <p>Belum ada <strong>tahun ajaran aktif</strong>. Buat tahun ajaran terlebih dahulu untuk mulai mengelola kelas dan siswa.</p>
+    <a href="/tahun-ajaran/new" class="btn">Buat Tahun Ajaran</a>
+  </div>
+<% } else { %>
+  <p class="text-muted">Tahun ajaran aktif: <strong><%= tahunAktif.label %></strong></p>
+
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="value"><%= jumlahSiswaAktif %></div>
+      <div class="label">Siswa Aktif</div>
+    </div>
+    <div class="stat-card">
+      <div class="value"><%= jumlahKelas %></div>
+      <div class="label">Kelas (<%= tahunAktif.label %>)</div>
+    </div>
+    <div class="stat-card <%= rekap.totalSiswaMenunggak > 0 ? 'warning' : '' %>">
+      <div class="value"><%= rekap.totalSiswaMenunggak %></div>
+      <div class="label">Siswa Menunggak</div>
+    </div>
+    <div class="stat-card <%= rekap.totalNilaiTunggakan > 0 ? 'warning' : '' %>">
+      <div class="value">Rp<%= rekap.totalNilaiTunggakan.toLocaleString('id-ID') %></div>
+      <div class="label">Total Tunggakan</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2 class="mt-0">Aksi Cepat</h2>
+    <div class="form-actions" style="flex-wrap:wrap">
+      <a href="/pembayaran/new" class="btn">+ Catat Pembayaran</a>
+      <a href="/surat" class="btn secondary">Buat Surat Tagihan</a>
+      <a href="/laporan/tunggakan" class="btn secondary">Laporan Tunggakan</a>
+      <a href="/siswa/new" class="btn secondary">+ Tambah Siswa</a>
+    </div>
+  </div>
+
+  <div class="dashboard-cols">
+    <div class="panel">
+      <div class="panel-head">
+        <h2 class="mt-0">Pembayaran Terbaru</h2>
+        <a href="/pembayaran">Lihat semua &rarr;</a>
+      </div>
+      <% if (recentPembayaran.length === 0) { %>
+        <div class="empty-state">Belum ada transaksi pembayaran.</div>
+      <% } else { %>
+        <table>
+          <thead><tr><th>Kwitansi</th><th>Siswa</th><th>Total</th><th>Tanggal</th><th>Status</th></tr></thead>
+          <tbody>
+            <% recentPembayaran.forEach(t => { %>
+              <% const total = t.detail.reduce((s, d) => s + d.jumlah, 0); %>
+              <tr>
+                <td><a href="/pembayaran/<%= t.id %>"><%= t.noKwitansi %></a></td>
+                <td><%= t.siswa.namaLengkap %></td>
+                <td>Rp<%= total.toLocaleString('id-ID') %></td>
+                <td><%= new Date(t.tanggal).toLocaleDateString('id-ID') %></td>
+                <td>
+                  <% if (t.status === 'AKTIF') { %>
+                    <span class="badge aktif">Aktif</span>
+                  <% } else { %>
+                    <span class="badge nonaktif">Dibatalkan</span>
+                  <% } %>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      <% } %>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2 class="mt-0">Surat Terbaru</h2>
+        <a href="/surat/riwayat">Lihat semua &rarr;</a>
+      </div>
+      <% if (recentSurat.length === 0) { %>
+        <div class="empty-state">Belum ada surat yang dibuat.</div>
+      <% } else { %>
+        <table>
+          <thead><tr><th>No Surat</th><th>Siswa</th><th>Periode</th><th>Tanggal</th><th>Status</th></tr></thead>
+          <tbody>
+            <% recentSurat.forEach(l => { %>
+              <tr>
+                <td><%= l.noSurat || '-' %></td>
+                <td><%= l.siswa.namaLengkap %></td>
+                <td><%= BULAN_LABELS[l.periodeBulan - 1] %></td>
+                <td><%= new Date(l.tanggalDibuat).toLocaleDateString('id-ID') %></td>
+                <td><span class="badge <%= l.status === 'DRAFT' ? 'nonaktif' : 'aktif' %>"><%= l.status %></span></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      <% } %>
+    </div>
+  </div>
+<% } %>
+<%- include('partials/footer') %>

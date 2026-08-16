@@ -1,0 +1,22 @@
+node_modules
+# Keep environment variables out of version control
+.env
+
+/generated/prisma
+/data/tmp-imports
+
+# Database files — contain real school/student data, never commit
+/dev.db
+/sessions.db
+*.db
+*.db-journal
+
+# Uploaded branding assets (logo/TTD/kop surat) — site-specific, uploaded via UI
+/public/uploads/*
+!/public/uploads/.gitkeep
+
+# Local AI assistant tooling (not part of the app)
+/.claude
+/.windsurf
+/.agents
+skills-lock.json

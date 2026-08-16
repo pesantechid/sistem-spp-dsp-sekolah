@@ -1,0 +1,26 @@
+<%- include('../partials/header') %>
+<div class="page-header">
+  <h1>Hasil Import</h1>
+</div>
+
+<div class="panel" style="padding:0">
+  <table>
+    <thead><tr><th>Sheet</th><th>Berhasil Dibuat</th><th>Dilewati (Duplikat)</th><th>Error</th></tr></thead>
+    <tbody>
+      <% summary.forEach(s => { %>
+        <tr>
+          <td><%= s.label %></td>
+          <td><%= s.created %></td>
+          <td><%= s.skipped %></td>
+          <td><%= s.error %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<div class="panel">
+  <a href="/import" class="btn">Import File Lain</a>
+  <a href="/siswa" class="btn secondary">Lihat Data Siswa</a>
+</div>
+<%- include('../partials/footer') %>

@@ -1,0 +1,40 @@
+<%- include('../partials/header') %>
+<div class="page-header">
+  <h1><%= title %></h1>
+</div>
+
+<div class="panel">
+  <form class="stacked" method="post" action="<%= kelas ? `/kelas/${kelas.id}` : '/kelas' %>">
+    <% if (!kelas) { %>
+    <div class="field">
+      <label for="tahunAjaranId">Tahun Ajaran</label>
+      <select id="tahunAjaranId" name="tahunAjaranId" required>
+        <% semuaTahunAjaran.forEach(ta => { %>
+          <option value="<%= ta.id %>" <%= tahunAjaran && tahunAjaran.id === ta.id ? 'selected' : '' %>><%= ta.label %></option>
+        <% }) %>
+      </select>
+    </div>
+    <% } %>
+    <div class="field">
+      <label for="jenjangId">Jenjang</label>
+      <select id="jenjangId" name="jenjangId" required>
+        <% jenjangList.forEach(j => { %>
+          <option value="<%= j.id %>" <%= kelas && kelas.jenjangId === j.id ? 'selected' : '' %>><%= j.nama %></option>
+        <% }) %>
+      </select>
+    </div>
+    <div class="field">
+      <label for="nama">Nama Kelas</label>
+      <input type="text" id="nama" name="nama" placeholder="IX A" value="<%= kelas ? kelas.nama : '' %>" required />
+    </div>
+    <div class="field">
+      <label for="waliKelas">Wali Kelas</label>
+      <input type="text" id="waliKelas" name="waliKelas" value="<%= kelas && kelas.waliKelas ? kelas.waliKelas : '' %>" />
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn">Simpan</button>
+      <a href="/kelas" class="btn secondary">Batal</a>
+    </div>
+  </form>
+</div>
+<%- include('../partials/footer') %>

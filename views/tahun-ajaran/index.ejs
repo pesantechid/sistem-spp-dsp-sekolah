@@ -1,0 +1,43 @@
+<%- include('../partials/header') %>
+<div class="page-header">
+  <h1>Tahun Ajaran</h1>
+  <a href="/tahun-ajaran/new" class="btn">+ Tambah Tahun Ajaran</a>
+</div>
+
+<div class="panel" style="padding:0">
+  <% if (list.length === 0) { %>
+    <div class="empty-state">Belum ada tahun ajaran. Tambahkan tahun ajaran pertama untuk mulai menggunakan sistem.</div>
+  <% } else { %>
+  <table>
+    <thead>
+      <tr><th>Label</th><th>Mulai</th><th>Selesai</th><th>SPP / Bulan</th><th>Status</th><th></th></tr>
+    </thead>
+    <tbody>
+      <% list.forEach(ta => { %>
+        <tr>
+          <td><%= ta.label %></td>
+          <td><%= new Date(ta.tanggalMulai).toLocaleDateString('id-ID') %></td>
+          <td><%= new Date(ta.tanggalSelesai).toLocaleDateString('id-ID') %></td>
+          <td><%= ta.tarif ? 'Rp' + ta.tarif.sppBulanan.toLocaleString('id-ID') : '-' %></td>
+          <td>
+            <% if (ta.isAktif) { %>
+              <span class="badge aktif">Aktif</span>
+            <% } else { %>
+              <span class="badge nonaktif">Nonaktif</span>
+            <% } %>
+          </td>
+          <td class="actions">
+            <a href="/tahun-ajaran/<%= ta.id %>/edit" class="btn small secondary">Edit</a>
+            <% if (!ta.isAktif) { %>
+              <form method="post" action="/tahun-ajaran/<%= ta.id %>/set-aktif" style="display:inline">
+                <button type="submit" class="btn small">Jadikan Aktif</button>
+              </form>
+            <% } %>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+  <% } %>
+</div>
+<%- include('../partials/footer') %>

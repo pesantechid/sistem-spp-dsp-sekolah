@@ -1,0 +1,73 @@
+<%- include('../partials/header') %>
+<div class="container" style="max-width:700px">
+  <% if (flash) { %>
+    <div class="flash <%= flash.type %> no-print"><%= flash.message %></div>
+  <% } %>
+  <div class="no-print" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+    <a href="/pembayaran">&larr; Kembali ke daftar pembayaran</a>
+    <div style="display:flex; gap:10px">
+      <button onclick="window.print()" class="btn">Cetak</button>
+      <% if (currentUser.role === 'ADMIN' && transaksi.status === 'AKTIF') { %>
+        <form method="post" action="/pembayaran/<%= transaksi.id %>/ganti"
+          onsubmit="return confirm('Batalkan transaksi ini dan lanjut catat pembayaran pengganti?')">
+          <button type="submit" class="btn secondary">Batalkan & Catat Ulang</button>
+        </form>
+        <form method="post" action="/pembayaran/<%= transaksi.id %>/batalkan"
+          onsubmit="return confirm('Batalkan transaksi ini? Tindakan ini tidak bisa dibatalkan kembali.')">
+          <button type="submit" class="btn danger">Batalkan</button>
+        </form>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="panel kwitansi">
+    <% if (transaksi.status === 'DIBATALKAN') { %>
+      <div class="flash error" style="margin-bottom:16px">Transaksi ini telah dibatalkan.</div>
+    <% } %>
+    <div class="kwitansi-head">
+      <% if (pengaturanGlobal && pengaturanGlobal.logoPath) { %>
+        <img src="<%= pengaturanGlobal.logoPath %>" alt="Logo" class="surat-logo" />
+      <% } %>
+      <h1>Kwitansi Pembayaran</h1>
+      <p class="text-muted"><%= (pengaturanGlobal && pengaturanGlobal.namaSekolah) || 'MTs' %> — Bukti Pembayaran SPP / DSP</p>
+    </div>
+
+    <div class="detail-grid" style="margin:20px 0">
+      <div><span class="text-muted">No. Kwitansi</span><br><strong><%= transaksi.noKwitansi %></strong></div>
+      <div><span class="text-muted">Tanggal</span><br><%= new Date(transaksi.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) %></div>
+      <div><span class="text-muted">Nama Siswa</span><br><%= transaksi.siswa.namaLengkap %></div>
+      <div><span class="text-muted">NIS</span><br><%= transaksi.siswa.nis || '-' %></div>
+    </div>
+
+    <table>
+      <thead><tr><th>Item</th><th>Jumlah</th></tr></thead>
+      <tbody>
+        <% const labelBulan = ["Juli","Agustus","September","Oktober","November","Desember","Januari","Februari","Maret","April","Mei","Juni"]; %>
+        <% transaksi.detail.forEach(d => { %>
+          <tr>
+            <td>
+              <% if (d.jenis === 'SPP') { %>
+                <% if (d.bulanSpp) { %>SPP Bulan <%= labelBulan[d.bulanSpp - 1] %><% } else { %>Pembayaran SPP<% } %>
+              <% } else if (d.jenis === 'DSP') { %>
+                Pembayaran DSP
+              <% } else { %>
+                Tunggakan Awal
+              <% } %>
+            </td>
+            <td>Rp<%= d.jumlah.toLocaleString('id-ID') %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+      <tfoot>
+        <tr><th>Total</th><th>Rp<%= total.toLocaleString('id-ID') %></th></tr>
+      </tfoot>
+    </table>
+
+    <% if (transaksi.catatan) { %>
+      <p class="text-muted" style="margin-top:16px">Catatan: <%= transaksi.catatan %></p>
+    <% } %>
+
+    <p class="text-muted" style="margin-top:24px; font-size:13px">Dicatat oleh: <%= transaksi.dicatatOleh.nama %></p>
+  </div>
+</div>
+<%- include('../partials/footer') %>

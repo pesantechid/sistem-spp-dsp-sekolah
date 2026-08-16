@@ -1,0 +1,40 @@
+<%- include('../partials/header') %>
+<div class="page-header">
+  <h1><%= title %></h1>
+</div>
+
+<div class="panel">
+  <form class="stacked" method="post" action="<%= user ? `/users/${user.id}` : '/users' %>">
+    <div class="field">
+      <label for="nama">Nama Lengkap</label>
+      <input type="text" id="nama" name="nama" value="<%= user ? user.nama : '' %>" required />
+    </div>
+    <div class="field">
+      <label for="username">Username</label>
+      <input type="text" id="username" name="username" value="<%= user ? user.username : '' %>" required />
+    </div>
+    <div class="field">
+      <label for="password">Password <% if (user) { %><span class="hint">(kosongkan jika tidak diubah)</span><% } %></label>
+      <input type="password" id="password" name="password" <%= user ? '' : 'required' %> />
+    </div>
+    <div class="field">
+      <label for="role">Role</label>
+      <select id="role" name="role" required>
+        <option value="STAFF" <%= user && user.role === 'STAFF' ? 'selected' : '' %>>Staff — input & laporan</option>
+        <option value="ADMIN" <%= user && user.role === 'ADMIN' ? 'selected' : '' %>>Admin — akses penuh</option>
+        <option value="VIEWER" <%= user && user.role === 'VIEWER' ? 'selected' : '' %>>Viewer — lihat saja</option>
+      </select>
+    </div>
+    <% if (user) { %>
+    <div class="field checkbox">
+      <input type="checkbox" id="aktif" name="aktif" <%= user.aktif ? 'checked' : '' %> />
+      <label for="aktif" style="margin:0">User aktif (bisa login)</label>
+    </div>
+    <% } %>
+    <div class="form-actions">
+      <button type="submit" class="btn">Simpan</button>
+      <a href="/users" class="btn secondary">Batal</a>
+    </div>
+  </form>
+</div>
+<%- include('../partials/footer') %>

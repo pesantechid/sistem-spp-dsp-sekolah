@@ -1,0 +1,100 @@
+<%- include('../partials/header') %>
+<div class="no-print" style="max-width:720px; margin:0 auto; padding:20px 20px 0; display:flex; justify-content:space-between; align-items:center;">
+  <a href="/surat">&larr; Kembali</a>
+  <button onclick="window.print()" class="btn">Cetak</button>
+</div>
+
+<% suratList.forEach((s, idx) => { %>
+<div class="surat-page<%= idx < suratList.length - 1 ? ' page-break' : '' %>">
+  <% if (pengaturan.kopSuratPath) { %>
+    <img src="<%= pengaturan.kopSuratPath %>" alt="Kop Surat" class="surat-kop-image" />
+  <% } else { %>
+    <div class="surat-kop">
+      <div class="surat-kop-row">
+        <% if (pengaturan.logoPath) { %><img src="<%= pengaturan.logoPath %>" alt="Logo" class="surat-logo" /><% } %>
+        <div class="surat-kop-text">
+          <% if (pengaturan.namaYayasan) { %>
+            <% pengaturan.namaYayasan.split('\n').map(l => l.trim()).filter(Boolean).forEach(line => { %>
+              <p class="surat-yayasan"><%= line %></p>
+            <% }) %>
+          <% } %>
+          <h1><%= pengaturan.namaSekolah || '(Nama Sekolah belum diisi — lihat halaman Pengaturan)' %></h1>
+        </div>
+      </div>
+      <p class="surat-alamat">
+        <%= pengaturan.alamatSekolah || '' %><% if (pengaturan.teleponSekolah) { %> &middot; Telp. <%= pengaturan.teleponSekolah %><% } %>
+      </p>
+    </div>
+  <% } %>
+  <hr class="surat-garis" />
+
+  <div class="surat-meta">
+    <p>Nomor: <%= s.noSurat || '-' %></p>
+    <p>Perihal: Tagihan Administrasi Keuangan</p>
+    <p style="text-align:right">
+      <%= new Date(s.tanggalSurat).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) %>
+    </p>
+  </div>
+
+  <p>Kepada Yth.<br />Orang Tua/Wali Siswa Kelas <%= s.jenjangNama %><br />di Tempat</p>
+
+  <p>Assalamu'alaikum warahmatullahi wabarakatuh,</p>
+  <p>
+    Dengan hormat, sehubungan dengan administrasi keuangan sekolah, bersama ini kami
+    sampaikan bahwa berdasarkan catatan kami, ananda:
+  </p>
+  <p><strong>Nama</strong>: <%= s.siswa.namaLengkap %><br /><strong>Kelas</strong>: <%= s.kelasNama %></p>
+  <p>
+    Administrasi keuangan yang belum diselesaikan sampai dengan bulan
+    <strong><%= s.bulanKalender.nama %> <%= s.bulanKalender.tahun %></strong> adalah sebagai berikut:
+  </p>
+
+  <table class="surat-tabel">
+    <thead><tr><th>No</th><th>Keterangan</th><th>Besar Tunggakan</th></tr></thead>
+    <tbody>
+      <% let no = 1; %>
+      <% if (s.sisaDsp > 0) { %>
+        <tr><td><%= no++ %></td><td>Tunggakan DSP</td><td>Rp<%= s.sisaDsp.toLocaleString('id-ID') %></td></tr>
+      <% } %>
+      <tr>
+        <td><%= no++ %></td>
+        <td>Tunggakan SPP &ndash; <%= s.jumlahBulanBelumBayar %> Bulan</td>
+        <td>Rp<%= s.tunggakanSpp.toLocaleString('id-ID') %></td>
+      </tr>
+      <% if (s.sisaTunggakanAwal > 0) { %>
+        <tr><td><%= no++ %></td><td>Tunggakan Awal (Kelas Sebelumnya)</td><td>Rp<%= s.sisaTunggakanAwal.toLocaleString('id-ID') %></td></tr>
+      <% } %>
+      <tr class="surat-total"><td colspan="2"><strong>Jumlah Tunggakan</strong></td><td><strong>Rp<%= s.totalTunggakan.toLocaleString('id-ID') %></strong></td></tr>
+    </tbody>
+  </table>
+
+  <p>
+    Kami mohon kesediaan Bapak/Ibu untuk segera menyelesaikan administrasi keuangan
+    tersebut paling lambat tanggal <%= pengaturan.batasTanggalBayar %> setiap bulannya.
+    Perlu kami sampaikan bahwa penyelesaian administrasi keuangan merupakan salah satu
+    syarat pengambilan Ijazah dan kelengkapan administrasi siswa lainnya.
+  </p>
+  <p>
+    Apabila terdapat pertanyaan mengenai tagihan ini, Bapak/Ibu dapat menghubungi
+    bendahara sekolah<% if (pengaturan.kontakBendahara) { %> (<%= pengaturan.kontakBendahara %>)<% } %>.
+  </p>
+  <p>
+    Demikian surat ini kami sampaikan, atas perhatian dan kerja samanya kami ucapkan
+    terima kasih.
+  </p>
+  <p>Wassalamu'alaikum warahmatullahi wabarakatuh.</p>
+
+  <div class="surat-ttd">
+    <p><%= pengaturan.jabatanPenandatangan %>,</p>
+    <% if (pengaturan.ttdPath) { %>
+      <img src="<%= pengaturan.ttdPath %>" alt="Tanda Tangan" class="surat-ttd-img" />
+    <% } else { %>
+      <div class="surat-ttd-spasi"></div>
+    <% } %>
+    <p class="surat-ttd-nama"><%= pengaturan.namaPenandatangan || '(Nama Penandatangan belum diisi)' %></p>
+    <% if (pengaturan.nipPenandatangan) { %><p>NIP/NUPTK. <%= pengaturan.nipPenandatangan %></p><% } %>
+  </div>
+</div>
+<% }) %>
+
+<%- include('../partials/footer') %>

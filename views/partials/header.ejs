@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= title %> — <%= (typeof pengaturanGlobal !== "undefined" && pengaturanGlobal && pengaturanGlobal.namaAplikasi) || "SPP MTs" %></title>
+  <% if (typeof pengaturanGlobal !== "undefined" && pengaturanGlobal && pengaturanGlobal.deskripsiAplikasi) { %>
+    <meta name="description" content="<%= pengaturanGlobal.deskripsiAplikasi %>" />
+  <% } %>
+  <% if (typeof pengaturanGlobal !== "undefined" && pengaturanGlobal && pengaturanGlobal.logoPath) { %>
+    <link rel="icon" href="<%= pengaturanGlobal.logoPath %>" />
+  <% } %>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+<% if (typeof currentUser !== "undefined" && currentUser) { %>
+  <div class="topbar">
+    <a class="brand" href="/">
+      <% if (typeof pengaturanGlobal !== "undefined" && pengaturanGlobal && pengaturanGlobal.logoPath) { %>
+        <img src="<%= pengaturanGlobal.logoPath %>" alt="Logo" class="brand-logo" />
+      <% } %>
+      <%= (typeof pengaturanGlobal !== "undefined" && pengaturanGlobal && pengaturanGlobal.namaAplikasi) || "SPP MTs" %>
+    </a>
+    <nav>
+      <a href="/" class="<%= title === 'Dashboard' ? 'active' : '' %>">Dashboard</a>
+      <a href="/siswa" class="<%= title.startsWith('Siswa') || title === 'Tambah Siswa' || title === 'Edit Siswa' ? 'active' : '' %>">Siswa</a>
+      <a href="/pembayaran" class="<%= title === 'Pembayaran' || title === 'Catat Pembayaran' ? 'active' : '' %>">Pembayaran</a>
+      <a href="/laporan/tunggakan" class="<%= title === 'Laporan Tunggakan' ? 'active' : '' %>">Laporan</a>
+      <a href="/surat" class="<%= title === 'Surat Tagihan' || title === 'Riwayat Surat' || title === 'Cetak Surat Tagihan' ? 'active' : '' %>">Surat</a>
+      <a href="/kelas" class="<%= title === 'Kelas' || title === 'Tambah Kelas' || title === 'Edit Kelas' ? 'active' : '' %>">Kelas</a>
+      <a href="/tahun-ajaran" class="<%= title.includes('Tahun Ajaran') ? 'active' : '' %>">Tahun Ajaran</a>
+      <% if (currentUser.role === 'ADMIN' || currentUser.role === 'STAFF') { %>
+        <a href="/import" class="<%= title.includes('Import') ? 'active' : '' %>">Import Data</a>
+      <% } %>
+      <% if (currentUser.role === 'ADMIN') { %>
+        <a href="/users" class="<%= title.includes('User') ? 'active' : '' %>">User</a>
+        <a href="/pengaturan" class="<%= title === 'Pengaturan' ? 'active' : '' %>">Pengaturan</a>
+      <% } %>
+    </nav>
+    <div class="user-info">
+      <span><%= currentUser.nama %> · <%= currentUser.role %></span>
+      <form method="post" action="/logout">
+        <button type="submit" class="link">Keluar</button>
+      </form>
+    </div>
+  </div>
+<% } %>
+<% if (typeof fullBleed === "undefined" || !fullBleed) { %>
+<div class="container">
+  <% if (flash) { %>
+    <div class="flash <%= flash.type %>"><%= flash.message %></div>
+  <% } %>
+<% } %>

@@ -1,0 +1,156 @@
+<%- include('../partials/header') %>
+<div class="page-header">
+  <h1>Pengaturan</h1>
+</div>
+<p class="text-muted" style="margin-top:-12px">Identitas sekolah untuk kop surat, kwitansi, dan penandatangan surat tagihan.</p>
+
+<form method="post" action="/pengaturan" class="stacked">
+  <div class="field">
+    <label>Nama Aplikasi</label>
+    <input type="text" name="namaAplikasi" value="<%= pengaturan.namaAplikasi || '' %>" placeholder="mis. SPP MTs Al-Hidayah" />
+    <div class="hint">Tampil di topbar aplikasi dan judul tab browser. Kosongkan untuk pakai default "SPP MTs".</div>
+  </div>
+  <div class="field">
+    <label>Deskripsi Aplikasi</label>
+    <input type="text" name="deskripsiAplikasi" value="<%= pengaturan.deskripsiAplikasi || '' %>" placeholder="Deskripsi singkat aplikasi" />
+  </div>
+  <hr class="sep" />
+  <div class="field">
+    <label>Nama Yayasan</label>
+    <textarea name="namaYayasan" rows="2"><%= pengaturan.namaYayasan || '' %></textarea>
+    <div class="hint">Tekan Enter untuk baris baru — dipakai apa adanya di kop surat (mis. 2 baris untuk nama yayasan yang panjang).</div>
+  </div>
+  <div class="field">
+    <label>Nama Sekolah *</label>
+    <input type="text" name="namaSekolah" value="<%= pengaturan.namaSekolah || '' %>" required />
+  </div>
+  <div class="field">
+    <label>Alamat Sekolah</label>
+    <input type="text" name="alamatSekolah" value="<%= pengaturan.alamatSekolah || '' %>" />
+  </div>
+  <div class="field">
+    <label>Telepon Sekolah</label>
+    <input type="text" name="teleponSekolah" value="<%= pengaturan.teleponSekolah || '' %>" />
+  </div>
+  <div class="field">
+    <label>Kode Prefix Surat</label>
+    <input type="text" name="kodeSuratPrefix" value="<%= pengaturan.kodeSuratPrefix || '' %>" placeholder="mis. MTs.../B" />
+    <div class="hint">Dipakai di nomor surat: {urut}/{prefix}/{bulan romawi}/{tahun}</div>
+  </div>
+  <hr class="sep" />
+  <div class="field">
+    <label>Nama Penandatangan</label>
+    <input type="text" name="namaPenandatangan" value="<%= pengaturan.namaPenandatangan || '' %>" />
+  </div>
+  <div class="field">
+    <label>Jabatan Penandatangan</label>
+    <input type="text" name="jabatanPenandatangan" value="<%= pengaturan.jabatanPenandatangan || 'Kepala Sekolah' %>" />
+  </div>
+  <div class="field">
+    <label>NIP/NUPTK Penandatangan</label>
+    <input type="text" name="nipPenandatangan" value="<%= pengaturan.nipPenandatangan || '' %>" />
+  </div>
+  <hr class="sep" />
+  <div class="field">
+    <label>Kontak Bendahara</label>
+    <input type="text" name="kontakBendahara" value="<%= pengaturan.kontakBendahara || '' %>" placeholder="mis. Bu Dwi (0812xxxxxxx)" />
+  </div>
+  <div class="field">
+    <label>Batas Tanggal Bayar (per bulan)</label>
+    <input type="number" name="batasTanggalBayar" min="1" max="28" value="<%= pengaturan.batasTanggalBayar %>" />
+  </div>
+  <hr class="sep" />
+  <div class="field">
+    <label>SPP Bulanan — Tahun Ajaran Aktif<% if (tahunAjaranAktif) { %> (<%= tahunAjaranAktif.label %>)<% } %></label>
+    <% if (tahunAjaranAktif) { %>
+      <input type="number" name="sppBulanan" min="0" step="1000" value="<%= tahunAjaranAktif.tarif ? tahunAjaranAktif.tarif.sppBulanan : 0 %>" />
+      <div class="hint">Berlaku sama untuk semua siswa di tahun ajaran ini. Untuk mengubah tarif tahun ajaran lain, buka menu Tahun Ajaran.</div>
+    <% } else { %>
+      <input type="number" disabled value="0" />
+      <div class="hint">Belum ada tahun ajaran aktif — buat/aktifkan dulu di menu Tahun Ajaran.</div>
+    <% } %>
+  </div>
+  <div class="field">
+    <label>DSP Standar (Rp)</label>
+    <input type="number" name="dspStandar" min="0" step="1000" value="<%= pengaturan.dspStandar %>" />
+    <div class="hint">Nominal default yang otomatis terisi saat mendaftarkan siswa baru (bisa diubah manual per siswa). DSP hanya ditagih sekali di awal masuk siswa, tidak berulang tiap tahun ajaran.</div>
+  </div>
+
+  <div class="form-actions">
+    <button type="submit" class="btn">Simpan</button>
+  </div>
+</form>
+
+<div class="panel" style="margin-top:20px">
+  <h2 class="mt-0">Logo Sekolah</h2>
+  <p class="text-muted" style="margin-top:-8px">Dipakai di topbar aplikasi dan kop surat tagihan.</p>
+  <div class="upload-row">
+    <% if (pengaturan.logoPath) { %>
+      <img src="<%= pengaturan.logoPath %>" alt="Logo" class="upload-preview" />
+    <% } else { %>
+      <div class="upload-preview upload-preview-empty">Belum ada logo</div>
+    <% } %>
+    <div class="upload-actions">
+      <form method="post" action="/pengaturan/logo" enctype="multipart/form-data" class="inline-form">
+        <input type="file" name="logo" accept="image/*" required />
+        <button type="submit" class="btn small">Upload</button>
+      </form>
+      <% if (pengaturan.logoPath) { %>
+        <form method="post" action="/pengaturan/logo/hapus" class="inline-form" onsubmit="return confirm('Hapus logo?')">
+          <button type="submit" class="btn small danger">Hapus</button>
+        </form>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<div class="panel" style="margin-top:20px">
+  <h2 class="mt-0">Tanda Tangan Digital</h2>
+  <p class="text-muted" style="margin-top:-8px">Dipakai di surat tagihan sebagai pengganti tanda tangan basah penandatangan.</p>
+  <div class="upload-row">
+    <% if (pengaturan.ttdPath) { %>
+      <img src="<%= pengaturan.ttdPath %>" alt="Tanda Tangan" class="upload-preview" />
+    <% } else { %>
+      <div class="upload-preview upload-preview-empty">Belum ada tanda tangan</div>
+    <% } %>
+    <div class="upload-actions">
+      <form method="post" action="/pengaturan/ttd" enctype="multipart/form-data" class="inline-form">
+        <input type="file" name="ttd" accept="image/*" required />
+        <button type="submit" class="btn small">Upload</button>
+      </form>
+      <% if (pengaturan.ttdPath) { %>
+        <form method="post" action="/pengaturan/ttd/hapus" class="inline-form" onsubmit="return confirm('Hapus tanda tangan?')">
+          <button type="submit" class="btn small danger">Hapus</button>
+        </form>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<div class="panel" style="margin-top:20px">
+  <h2 class="mt-0">Kop Surat (Opsional)</h2>
+  <p class="text-muted" style="margin-top:-8px">
+    Kalau diupload, gambar ini menggantikan seluruh kop teks (nama yayasan, nama sekolah, alamat) di surat tagihan
+    — body surat langsung dimulai dari baris Nomor Surat. Kosongkan untuk pakai kop teks otomatis dari data di atas.
+    Tidak dipakai di kwitansi (kwitansi tetap pakai logo kecil).
+  </p>
+  <div class="upload-row">
+    <% if (pengaturan.kopSuratPath) { %>
+      <img src="<%= pengaturan.kopSuratPath %>" alt="Kop Surat" class="upload-preview upload-preview-wide" />
+    <% } else { %>
+      <div class="upload-preview upload-preview-wide upload-preview-empty">Belum ada kop surat</div>
+    <% } %>
+    <div class="upload-actions">
+      <form method="post" action="/pengaturan/kop-surat" enctype="multipart/form-data" class="inline-form">
+        <input type="file" name="kopSurat" accept="image/*" required />
+        <button type="submit" class="btn small">Upload</button>
+      </form>
+      <% if (pengaturan.kopSuratPath) { %>
+        <form method="post" action="/pengaturan/kop-surat/hapus" class="inline-form" onsubmit="return confirm('Hapus kop surat?')">
+          <button type="submit" class="btn small danger">Hapus</button>
+        </form>
+      <% } %>
+    </div>
+  </div>
+</div>
+<%- include('../partials/footer') %>

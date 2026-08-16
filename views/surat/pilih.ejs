@@ -1,0 +1,88 @@
+<%- include('../partials/header') %>
+<div class="page-header">
+  <h1>Surat Tagihan</h1>
+</div>
+<p class="text-muted" style="margin-top:-12px">Tahun Ajaran <%= tahunAjaranAktif.label %></p>
+
+<div class="toolbar">
+  <form method="get" action="/surat" class="inline-form">
+    <select name="jenjangId" onchange="this.form.submit()">
+      <option value="">Semua Jenjang</option>
+      <% jenjangList.forEach(j => { %>
+        <option value="<%= j.id %>" <%= jenjangId === j.id ? 'selected' : '' %>><%= j.nama %></option>
+      <% }) %>
+    </select>
+    <select name="kelasId" onchange="this.form.submit()">
+      <option value="">Semua Kelas</option>
+      <% kelasList.forEach(k => { %>
+        <option value="<%= k.id %>" <%= kelasId === k.id ? 'selected' : '' %>><%= k.jenjang.nama %> - <%= k.nama %></option>
+      <% }) %>
+    </select>
+    <input type="text" name="q" placeholder="Cari nama siswa..." value="<%= q %>" />
+    <button type="submit" class="btn secondary">Cari</button>
+    <input type="hidden" name="periodeBulan" value="<%= periodeBulan %>" />
+  </form>
+  <a href="/surat/riwayat" class="btn secondary">Riwayat Surat</a>
+</div>
+
+<form method="post" action="/surat/generate">
+  <div style="display:flex; gap:16px; flex-wrap:wrap">
+    <div class="field" style="max-width:280px">
+      <label>Tunggakan s/d Bulan</label>
+      <select name="periodeBulan">
+        <% bulanLabels.forEach((label, i) => { %>
+          <option value="<%= i + 1 %>" <%= periodeBulan === i + 1 ? 'selected' : '' %>><%= label %></option>
+        <% }) %>
+      </select>
+    </div>
+    <div class="field" style="max-width:200px">
+      <label>Tanggal Surat</label>
+      <input type="date" name="tanggalSurat" value="<%= new Date().toISOString().slice(0, 10) %>" />
+    </div>
+  </div>
+
+  <% if (list.length > 0) { %>
+  <div class="toolbar" style="justify-content:flex-end">
+    <button type="submit" class="btn">Cetak Surat Terpilih</button>
+  </div>
+  <% } %>
+
+  <div class="panel" style="padding:0">
+    <% if (list.length === 0) { %>
+      <div class="empty-state">Tidak ada siswa untuk filter ini.</div>
+    <% } else { %>
+    <table>
+      <thead>
+        <tr>
+          <th style="width:36px"><input type="checkbox" id="checkAll" /></th>
+          <th>Nama</th><th>Kelas</th><th>Bulan SPP Nunggak</th><th>Total Tunggakan</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% list.forEach(s => { %>
+          <tr>
+            <td><input type="checkbox" name="siswaIds" value="<%= s.siswaId %>" <%= s.totalTunggakan > 0 ? 'checked' : '' %> /></td>
+            <td><%= s.nama %></td>
+            <td><%= s.jenjangNama %> - <%= s.kelasNama %></td>
+            <td><%= s.jumlahBulanBelumBayar %></td>
+            <td>Rp<%= s.totalTunggakan.toLocaleString('id-ID') %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+    <% } %>
+  </div>
+</form>
+
+<script>
+  var checkAll = document.getElementById('checkAll');
+  if (checkAll) {
+    checkAll.addEventListener('change', function () {
+      document.querySelectorAll('input[name="siswaIds"]').forEach(function (cb) {
+        cb.checked = checkAll.checked;
+      });
+    });
+  }
+</script>
+
+<%- include('../partials/footer') %>

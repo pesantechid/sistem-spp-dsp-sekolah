@@ -1,0 +1,29 @@
+<%- include('../partials/header') %>
+<div class="page-header">
+  <h1>Kelola User</h1>
+  <a href="/users/new" class="btn">+ Tambah User</a>
+</div>
+
+<div class="panel" style="padding:0">
+  <% if (users.length === 0) { %>
+    <div class="empty-state">Belum ada user.</div>
+  <% } else { %>
+  <table>
+    <thead>
+      <tr><th>Nama</th><th>Username</th><th>Role</th><th>Status</th><th></th></tr>
+    </thead>
+    <tbody>
+      <% users.forEach(u => { %>
+        <tr>
+          <td><%= u.nama %></td>
+          <td><%= u.username %></td>
+          <td><span class="badge <%= u.role %>"><%= u.role %></span></td>
+          <td><span class="badge <%= u.aktif ? 'aktif' : 'nonaktif' %>"><%= u.aktif ? 'Aktif' : 'Nonaktif' %></span></td>
+          <td><a href="/users/<%= u.id %>/edit" class="btn small secondary">Edit</a></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+  <% } %>
+</div>
+<%- include('../partials/footer') %>

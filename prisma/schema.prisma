@@ -1,0 +1,252 @@
+// Prisma schema — Sistem Manajemen SPP & DSP MTs
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum Role {
+  ADMIN
+  STAFF
+  VIEWER
+}
+
+enum StatusSiswa {
+  AKTIF
+  LULUS
+  PINDAH
+  KELUAR
+}
+
+enum JenisPembayaran {
+  SPP
+  DSP
+  TUNGGAKAN_AWAL
+}
+
+enum MetodeKirim {
+  PRINT
+  EMAIL
+  WHATSAPP
+}
+
+enum StatusSurat {
+  DRAFT
+  TERKIRIM
+}
+
+enum StatusTransaksi {
+  AKTIF
+  DIBATALKAN
+}
+
+enum KategoriKeringanan {
+  PRESTASI
+  KURANG_MAMPU
+  YATIM
+  PIATU
+  LAINNYA
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  nama         String
+  username     String   @unique
+  passwordHash String
+  role         Role     @default(STAFF)
+  aktif        Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  transaksi TransaksiPembayaran[]
+  suratLogs SuratTagihanLog[]
+
+  @@map("users")
+}
+
+model TahunAjaran {
+  id             Int      @id @default(autoincrement())
+  label          String   @unique // "2026/2027"
+  tanggalMulai   DateTime
+  tanggalSelesai DateTime
+  isAktif        Boolean  @default(false)
+
+  tarif         Tarif?
+  kelas         Kelas[]
+  siswaKelas    SiswaKelas[]
+  tunggakanAwal TunggakanAwal[]
+  suratLogs     SuratTagihanLog[]
+
+  @@map("tahun_ajaran")
+}
+
+model Tarif {
+  id            Int         @id @default(autoincrement())
+  tahunAjaranId Int         @unique
+  tahunAjaran   TahunAjaran @relation(fields: [tahunAjaranId], references: [id])
+  sppBulanan    Int // dalam Rupiah
+
+  @@map("tarif")
+}
+
+model Jenjang {
+  id     Int    @id @default(autoincrement())
+  nama   String @unique // VII, VIII, IX
+  urutan Int    @unique
+
+  kelas Kelas[]
+
+  @@map("jenjang")
+}
+
+model Kelas {
+  id            Int         @id @default(autoincrement())
+  tahunAjaranId Int
+  tahunAjaran   TahunAjaran @relation(fields: [tahunAjaranId], references: [id])
+  jenjangId     Int
+  jenjang       Jenjang     @relation(fields: [jenjangId], references: [id])
+  nama          String // "IX A"
+  waliKelas     String?
+
+  siswaKelas SiswaKelas[]
+
+  @@unique([tahunAjaranId, nama])
+  @@map("kelas")
+}
+
+model Siswa {
+  id           Int         @id @default(autoincrement())
+  nis          String?     @unique
+  nisn         String?     @unique
+  namaLengkap  String
+  jenisKelamin String? // L / P
+  namaWali     String?
+  noHpWali     String?
+  emailWali    String?
+  status       StatusSiswa @default(AKTIF)
+  createdAt    DateTime    @default(now())
+
+  siswaKelas    SiswaKelas[]
+  tunggakanAwal TunggakanAwal[]
+  dspTagihan    DspTagihan[]
+  transaksi     TransaksiPembayaran[]
+  suratLogs     SuratTagihanLog[]
+
+  @@map("siswa")
+}
+
+model SiswaKelas {
+  id            Int         @id @default(autoincrement())
+  siswaId       Int
+  siswa         Siswa       @relation(fields: [siswaId], references: [id])
+  tahunAjaranId Int
+  tahunAjaran   TahunAjaran @relation(fields: [tahunAjaranId], references: [id])
+  kelasId       Int
+  kelas         Kelas       @relation(fields: [kelasId], references: [id])
+  bulanMulai    Int         @default(1) // 1=Juli .. 12=Juni
+  status        StatusSiswa @default(AKTIF)
+
+  sppOverride           Int? // null = tarif normal, 0 = gratis, angka lain = SPP/bulan setelah potongan
+  sppKeringananKategori KategoriKeringanan?
+  sppKeringananCatatan  String?
+
+  @@unique([siswaId, tahunAjaranId])
+  @@map("siswa_kelas")
+}
+
+model TunggakanAwal {
+  id            Int         @id @default(autoincrement())
+  siswaId       Int
+  siswa         Siswa       @relation(fields: [siswaId], references: [id])
+  tahunAjaranId Int
+  tahunAjaran   TahunAjaran @relation(fields: [tahunAjaranId], references: [id])
+  saldoAwalSpp  Int         @default(0) // Rupiah, tunggakan bawaan sebelum tahun ajaran ini
+  catatan       String?
+
+  @@unique([siswaId, tahunAjaranId])
+  @@map("tunggakan_awal")
+}
+
+model DspTagihan {
+  id                Int      @id @default(autoincrement())
+  siswaId           Int
+  siswa             Siswa    @relation(fields: [siswaId], references: [id])
+  jumlahDsp         Int // total tagihan DSP siswa ini (Rupiah)
+  tanggalDitetapkan DateTime @default(now())
+  catatan           String?
+
+  @@map("dsp_tagihan")
+}
+
+model TransaksiPembayaran {
+  id            Int              @id @default(autoincrement())
+  noKwitansi    String           @unique
+  siswaId       Int
+  siswa         Siswa            @relation(fields: [siswaId], references: [id])
+  tanggal       DateTime         @default(now())
+  dicatatOlehId Int
+  dicatatOleh   User             @relation(fields: [dicatatOlehId], references: [id])
+  status        StatusTransaksi  @default(AKTIF)
+  catatan       String?
+
+  detail TransaksiPembayaranDetail[]
+
+  @@map("transaksi_pembayaran")
+}
+
+model TransaksiPembayaranDetail {
+  id            Int                  @id @default(autoincrement())
+  transaksiId   Int
+  transaksi     TransaksiPembayaran  @relation(fields: [transaksiId], references: [id])
+  jenis         JenisPembayaran
+  tahunAjaranId Int? // hanya untuk SPP
+  bulanSpp      Int? // 1-12, hanya untuk SPP
+  jumlah        Int
+
+  @@map("transaksi_pembayaran_detail")
+}
+
+model Pengaturan {
+  id                   Int     @id @default(1)
+  namaYayasan          String?
+  namaSekolah          String  @default("")
+  alamatSekolah        String?
+  teleponSekolah       String?
+  kodeSuratPrefix      String?
+  namaPenandatangan    String?
+  jabatanPenandatangan String  @default("Kepala Sekolah")
+  nipPenandatangan     String?
+  kontakBendahara      String?
+  batasTanggalBayar    Int     @default(10)
+  dspStandar           Int     @default(0) // nominal standar DSP untuk siswa baru (Rp)
+  namaAplikasi         String? // nama aplikasi/web, tampil di topbar & judul tab browser
+  deskripsiAplikasi    String? // deskripsi singkat aplikasi
+  logoPath             String? // path publik ke file logo, mis. "/uploads/logo-172xxx.png"
+  ttdPath              String? // path publik ke file tanda tangan digital penandatangan
+  kopSuratPath         String? // path publik ke gambar kop surat utuh (opsional), menggantikan kop teks kalau diisi
+
+  @@map("pengaturan")
+}
+
+model SuratTagihanLog {
+  id            Int         @id @default(autoincrement())
+  siswaId       Int
+  siswa         Siswa       @relation(fields: [siswaId], references: [id])
+  tahunAjaranId Int
+  tahunAjaran   TahunAjaran @relation(fields: [tahunAjaranId], references: [id])
+  periodeBulan  Int // 1-12
+  noSurat       String?
+  tanggalDibuat DateTime    @default(now())
+  dibuatOlehId  Int
+  dibuatOleh    User        @relation(fields: [dibuatOlehId], references: [id])
+  metodeKirim   MetodeKirim?
+  status        StatusSurat @default(DRAFT)
+  tanggalKirim  DateTime?
+  catatan       String?
+
+  @@map("surat_tagihan_log")
+}

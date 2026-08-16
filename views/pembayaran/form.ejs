@@ -1,0 +1,83 @@
+<%- include('../partials/header') %>
+<div class="page-header">
+  <h1>Catat Pembayaran</h1>
+  <a href="/pembayaran/new" class="btn secondary">Ganti Siswa</a>
+</div>
+
+<div class="panel">
+  <h2 class="mt-0"><%= siswa.namaLengkap %></h2>
+  <p class="text-muted">
+    <%= siswa.siswaKelas[0] ? `${siswa.siswaKelas[0].kelas.jenjang.nama} - ${siswa.siswaKelas[0].kelas.nama}` : 'Belum ada kelas' %>
+    · Tahun Ajaran <%= tahunAjaranAktif.label %>
+  </p>
+</div>
+
+
+<% if (refKwitansi) { %>
+  <div class="flash error" style="margin-bottom:16px">Kwitansi <strong><%= refKwitansi %></strong> telah dibatalkan. Catat pembayaran pengganti di bawah ini.</div>
+<% } %>
+
+<form method="post" action="/pembayaran" id="form-pembayaran">
+  <input type="hidden" name="siswaId" value="<%= siswa.id %>" />
+
+  <% if (statusTunggakan.sisa > 0) { %>
+  <div class="panel">
+    <h2 class="mt-0">Tunggakan Awal (sebelum sistem ini)</h2>
+    <p class="text-muted">Sisa tunggakan: <strong>Rp<%= statusTunggakan.sisa.toLocaleString('id-ID') %></strong></p>
+    <div class="field" style="max-width:260px">
+      <label for="bayarTunggakan">Jumlah Dibayar (Rp)</label>
+      <input type="number" id="bayarTunggakan" name="bayarTunggakan" class="item-amount" min="0" max="<%= statusTunggakan.sisa %>" step="1000" value="0" />
+    </div>
+  </div>
+  <% } %>
+
+  <% if (statusSpp.sisa > 0) { %>
+  <div class="panel">
+    <h2 class="mt-0">SPP (Rp<%= statusSpp.sppBulanan.toLocaleString('id-ID') %> / bulan)</h2>
+    <p class="text-muted">
+      Sudah dibayar <%= statusSpp.bulanLunasPenuh %>/<%= statusSpp.totalBulanBerlaku %> bulan
+      (Rp<%= statusSpp.totalDibayar.toLocaleString('id-ID') %> dari Rp<%= statusSpp.totalTagihan.toLocaleString('id-ID') %>).
+      Sisa tagihan SPP: <strong>Rp<%= statusSpp.sisa.toLocaleString('id-ID') %></strong>
+    </p>
+    <div class="field" style="max-width:260px">
+      <label for="bayarSpp">Jumlah Dibayar (Rp)</label>
+      <input type="number" id="bayarSpp" name="bayarSpp" class="item-amount" min="0" max="<%= statusSpp.sisa %>" step="1000" value="0" />
+    </div>
+  </div>
+  <% } %>
+
+  <% if (statusDsp.sisa > 0) { %>
+  <div class="panel">
+    <h2 class="mt-0">DSP</h2>
+    <p class="text-muted">Sisa tagihan DSP: <strong>Rp<%= statusDsp.sisa.toLocaleString('id-ID') %></strong></p>
+    <div class="field" style="max-width:260px">
+      <label for="bayarDsp">Jumlah Dibayar (Rp)</label>
+      <input type="number" id="bayarDsp" name="bayarDsp" class="item-amount" min="0" max="<%= statusDsp.sisa %>" step="1000" value="0" />
+    </div>
+  </div>
+  <% } %>
+
+  <div class="panel">
+    <div class="field">
+      <label for="catatan">Catatan (opsional)</label>
+      <textarea id="catatan" name="catatan" rows="2"><%= refKwitansi ? `Koreksi dari kwitansi ${refKwitansi}` : '' %></textarea>
+    </div>
+    <p class="text-muted">Total dibayar: <strong id="total-display">Rp0</strong></p>
+    <div class="form-actions">
+      <button type="submit" class="btn">Simpan Pembayaran</button>
+      <a href="/siswa/<%= siswa.id %>" class="btn secondary">Batal</a>
+    </div>
+  </div>
+</form>
+
+<script>
+  function hitungTotal() {
+    let total = 0;
+    document.querySelectorAll('.item-amount').forEach(el => total += Number(el.value) || 0);
+    document.getElementById('total-display').textContent = 'Rp' + total.toLocaleString('id-ID');
+  }
+  document.getElementById('form-pembayaran').addEventListener('change', hitungTotal);
+  document.getElementById('form-pembayaran').addEventListener('input', hitungTotal);
+  hitungTotal();
+</script>
+<%- include('../partials/footer') %>

@@ -1,0 +1,40 @@
+<%- include('../partials/header') %>
+<div class="page-header">
+  <h1>Catat Pembayaran</h1>
+</div>
+<p class="text-muted" style="margin-top:-12px">Pilih siswa untuk mencatat pembayaran.</p>
+
+<div class="toolbar">
+  <form method="get" action="/pembayaran/new" class="inline-form">
+    <input type="text" name="q" placeholder="Cari nama siswa..." value="<%= q %>" autofocus />
+    <select name="kelasId" onchange="this.form.submit()">
+      <option value="">Semua Kelas</option>
+      <% kelasList.forEach(k => { %>
+        <option value="<%= k.id %>" <%= kelasId === k.id ? 'selected' : '' %>><%= k.jenjang.nama %> - <%= k.nama %></option>
+      <% }) %>
+    </select>
+    <button type="submit" class="btn small secondary">Cari</button>
+  </form>
+</div>
+
+<div class="panel" style="padding:0">
+  <% if (hasil.length === 0) { %>
+    <div class="empty-state"><%= q || kelasId ? 'Tidak ada siswa yang cocok.' : 'Belum ada siswa aktif.' %></div>
+  <% } else { %>
+  <table>
+    <thead><tr><th>Nama</th><th>NIS</th><th>Kelas</th><th></th></tr></thead>
+    <tbody>
+      <% hasil.forEach(s => { %>
+        <% const sk = s.siswaKelas[0]; %>
+        <tr>
+          <td><%= s.namaLengkap %></td>
+          <td><%= s.nis || '-' %></td>
+          <td><%= sk ? `${sk.kelas.jenjang.nama} - ${sk.kelas.nama}` : '-' %></td>
+          <td><a href="/pembayaran/new?siswaId=<%= s.id %>" class="btn small">Pilih</a></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+  <% } %>
+</div>
+<%- include('../partials/footer') %>

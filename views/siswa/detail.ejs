@@ -1,0 +1,222 @@
+<%- include('../partials/header') %>
+<div class="page-header">
+  <h1><%= siswa.namaLengkap %></h1>
+  <div style="display:flex; gap:10px">
+    <a href="/pembayaran/new?siswaId=<%= siswa.id %>" class="btn">+ Catat Pembayaran</a>
+    <a href="/siswa/<%= siswa.id %>/edit" class="btn secondary">Edit Data</a>
+  </div>
+</div>
+
+<% if (tahunAjaranAktif) { %>
+<div class="panel">
+  <h2 class="mt-0">Status Tagihan — <%= tahunAjaranAktif.label %></h2>
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="value"><%= statusSpp.jumlahBelumBayar %></div>
+      <div class="label">Bulan SPP Belum Lunas</div>
+    </div>
+    <div class="stat-card">
+      <div class="value">Rp<%= statusTunggakan.sisa.toLocaleString('id-ID') %></div>
+      <div class="label">Sisa Tunggakan Awal</div>
+    </div>
+    <div class="stat-card">
+      <div class="value">Rp<%= statusDsp.sisa.toLocaleString('id-ID') %></div>
+      <div class="label">Sisa DSP</div>
+    </div>
+  </div>
+  <% if (statusSpp.belumBayar.length > 0) { %>
+    <p class="text-muted" style="margin-top:16px">Bulan belum bayar: <%= statusSpp.belumBayar.map(b => b.label).join(', ') %></p>
+  <% } %>
+
+  <% const kategoriLabelMap = { PRESTASI: 'Prestasi', KURANG_MAMPU: 'Kurang Mampu', YATIM: 'Yatim', PIATU: 'Piatu', LAINNYA: 'Lainnya' }; %>
+  <% if (statusSpp.sppKeringanan) { %>
+    <p class="text-muted" style="margin-top:8px">
+      <strong>Keringanan SPP:</strong> <%= kategoriLabelMap[statusSpp.sppKeringanan.kategori] || statusSpp.sppKeringanan.kategori %>
+      — <%= statusSpp.sppBulanan === 0 ? 'Gratis' : 'Rp' + statusSpp.sppBulanan.toLocaleString('id-ID') + '/bulan (normal Rp' + statusSpp.sppKeringanan.sppNormal.toLocaleString('id-ID') + ')' %>
+      <% if (statusSpp.sppKeringanan.catatan) { %>&mdash; <%= statusSpp.sppKeringanan.catatan %><% } %>
+    </p>
+  <% } %>
+
+  <% if (currentUser.role === 'ADMIN' || currentUser.role === 'STAFF') { %>
+    <hr class="sep" />
+    <form method="post" action="/siswa/<%= siswa.id %>/keringanan-spp" class="inline-form">
+      <label class="text-muted">Keringanan SPP:</label>
+      <select name="kategori">
+        <option value="">Tidak ada (tarif normal)</option>
+        <% ['PRESTASI','KURANG_MAMPU','YATIM','PIATU','LAINNYA'].forEach(k => { %>
+          <option value="<%= k %>" <%= skAktif && skAktif.sppKeringananKategori === k ? 'selected' : '' %>><%= kategoriLabelMap[k] %></option>
+        <% }) %>
+      </select>
+      <input type="number" name="sppOverride" min="0" step="1000" placeholder="Nominal SPP/bulan (0=gratis)" value="<%= skAktif && skAktif.sppOverride !== null ? skAktif.sppOverride : '' %>" style="width:220px" />
+      <input type="text" name="catatan" placeholder="Catatan (mis. alasan)" value="<%= skAktif && skAktif.sppKeringananCatatan ? skAktif.sppKeringananCatatan : '' %>" style="width:200px" />
+      <button type="submit" class="btn small">Simpan</button>
+    </form>
+    <div class="hint">Pilih "Tidak ada (tarif normal)" lalu Simpan untuk mengembalikan siswa ke tarif SPP normal.</div>
+  <% } %>
+</div>
+<% } %>
+
+<div class="panel">
+  <h2 class="mt-0">Data Diri</h2>
+  <div class="detail-grid">
+    <div><span class="text-muted">NIS</span><br><%= siswa.nis || '-' %></div>
+    <div><span class="text-muted">NISN</span><br><%= siswa.nisn || '-' %></div>
+    <div><span class="text-muted">Jenis Kelamin</span><br><%= siswa.jenisKelamin || '-' %></div>
+    <div><span class="text-muted">Status</span><br><span class="badge <%= siswa.status === 'AKTIF' ? 'aktif' : 'nonaktif' %>"><%= siswa.status %></span></div>
+    <div><span class="text-muted">Nama Wali</span><br><%= siswa.namaWali || '-' %></div>
+    <div><span class="text-muted">No. HP Wali</span><br><%= siswa.noHpWali || '-' %></div>
+    <div><span class="text-muted">Email Wali</span><br><%= siswa.emailWali || '-' %></div>
+  </div>
+</div>
+
+<div class="panel">
+  <h2 class="mt-0">Riwayat Kelas</h2>
+  <% if (siswa.siswaKelas.length === 0) { %>
+    <p class="text-muted">Belum ada riwayat kelas.</p>
+  <% } else { %>
+  <table>
+    <thead><tr><th>Tahun Ajaran</th><th>Kelas</th><th>Mulai Bulan Ke-</th></tr></thead>
+    <tbody>
+      <% siswa.siswaKelas.forEach(sk => { %>
+        <tr>
+          <td><%= sk.tahunAjaran.label %></td>
+          <td><%= sk.kelas.jenjang.nama %> - <%= sk.kelas.nama %></td>
+          <td><%= sk.bulanMulai %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+  <% } %>
+
+  <% if (tahunAjaranAktif && kelasList.length > 0) { %>
+    <hr class="sep" />
+    <form method="post" action="/siswa/<%= siswa.id %>/pindah-kelas" class="inline-form">
+      <label for="kelasId" class="text-muted">Pindah/atur kelas untuk <%= tahunAjaranAktif.label %>:</label>
+      <select id="kelasId" name="kelasId">
+        <% kelasList.forEach(k => { %>
+          <option value="<%= k.id %>"><%= k.jenjang.nama %> - <%= k.nama %></option>
+        <% }) %>
+      </select>
+      <button type="submit" class="btn small">Simpan</button>
+    </form>
+  <% } %>
+</div>
+
+<div class="panel">
+  <h2 class="mt-0">Tunggakan Awal</h2>
+  <% if (siswa.tunggakanAwal.length === 0) { %>
+    <p class="text-muted">Tidak ada catatan tunggakan awal.</p>
+  <% } else { %>
+  <table>
+    <thead><tr><th>Tahun Ajaran</th><th>Saldo Awal SPP</th><th>Catatan</th></tr></thead>
+    <tbody>
+      <% siswa.tunggakanAwal.forEach(ta => { %>
+        <tr>
+          <td><%= ta.tahunAjaran.label %></td>
+          <td>Rp<%= ta.saldoAwalSpp.toLocaleString('id-ID') %></td>
+          <td><%= ta.catatan || '-' %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+  <% } %>
+
+  <% if (tahunAjaranAktif && (currentUser.role === 'ADMIN' || currentUser.role === 'STAFF')) { %>
+    <hr class="sep" />
+    <form method="post" action="/siswa/<%= siswa.id %>/tunggakan-awal" class="inline-form">
+      <label class="text-muted">Tunggakan Awal <%= tahunAjaranAktif.label %>:</label>
+      <input type="number" name="saldoAwalSpp" min="0" step="1000" placeholder="Rp" value="<%= taAktif ? taAktif.saldoAwalSpp : 0 %>" style="width:160px" />
+      <input type="text" name="catatan" placeholder="Catatan (opsional)" value="<%= taAktif && taAktif.catatan ? taAktif.catatan : '' %>" style="width:220px" />
+      <button type="submit" class="btn small">Simpan</button>
+    </form>
+    <% if (statusTunggakan && statusTunggakan.totalDibayar > 0) { %>
+      <div class="hint">Sudah dibayar Rp<%= statusTunggakan.totalDibayar.toLocaleString('id-ID') %> dari tunggakan ini — mengubah nominal di atas tidak mengubah riwayat pembayaran yang sudah tercatat.</div>
+    <% } %>
+  <% } %>
+</div>
+
+<div class="panel">
+  <h2 class="mt-0">Tagihan DSP</h2>
+  <% if (siswa.dspTagihan.length === 0) { %>
+    <p class="text-muted">Tidak ada tagihan DSP.</p>
+  <% } else { %>
+  <table>
+    <thead><tr><th>Tanggal</th><th>Jumlah</th><th>Catatan</th><% if (currentUser.role === 'ADMIN' || currentUser.role === 'STAFF') { %><th></th><% } %></tr></thead>
+    <tbody>
+      <% siswa.dspTagihan.forEach(d => { %>
+        <tr id="dsp-row-<%= d.id %>">
+          <td><%= new Date(d.tanggalDitetapkan).toLocaleDateString('id-ID') %></td>
+          <td>Rp<%= d.jumlahDsp.toLocaleString('id-ID') %></td>
+          <td><%= d.catatan || '-' %></td>
+          <% if (currentUser.role === 'ADMIN' || currentUser.role === 'STAFF') { %>
+          <td style="white-space:nowrap">
+            <a href="#" class="btn small secondary" onclick="document.getElementById('dsp-edit-<%= d.id %>').style.display='table-row'; document.getElementById('dsp-row-<%= d.id %>').style.display='none'; return false;">Ubah</a>
+            <% if (currentUser.role === 'ADMIN') { %>
+            <form method="post" action="/siswa/<%= siswa.id %>/dsp/<%= d.id %>/hapus" style="display:inline" onsubmit="return confirm('Hapus tagihan DSP ini?')">
+              <button type="submit" class="btn small secondary">Hapus</button>
+            </form>
+            <% } %>
+          </td>
+          <% } %>
+        </tr>
+        <% if (currentUser.role === 'ADMIN' || currentUser.role === 'STAFF') { %>
+        <tr id="dsp-edit-<%= d.id %>" style="display:none">
+          <td colspan="4">
+            <form method="post" action="/siswa/<%= siswa.id %>/dsp/<%= d.id %>" class="inline-form">
+              <input type="number" name="jumlahDsp" min="0" step="1000" value="<%= d.jumlahDsp %>" style="width:140px" required />
+              <input type="text" name="catatan" placeholder="Catatan" value="<%= d.catatan || '' %>" style="width:220px" />
+              <button type="submit" class="btn small">Simpan</button>
+            </form>
+          </td>
+        </tr>
+        <% } %>
+      <% }) %>
+    </tbody>
+  </table>
+  <% } %>
+
+  <% if (currentUser.role === 'ADMIN' || currentUser.role === 'STAFF') { %>
+    <hr class="sep" />
+    <form method="post" action="/siswa/<%= siswa.id %>/dsp" class="inline-form">
+      <label for="jumlahDsp" class="text-muted">Tambah tagihan DSP:</label>
+      <input type="number" id="jumlahDsp" name="jumlahDsp" min="0" step="1000" placeholder="Rp" required style="width:140px" />
+      <input type="text" name="catatan" placeholder="Catatan (mis. siswa pindahan)" style="width:220px" />
+      <button type="submit" class="btn small">Tambah</button>
+    </form>
+    <div class="hint">Gunakan ini untuk siswa yang sudah terdaftar tapi belum punya tagihan DSP (mis. siswa pindahan yang baru masuk).</div>
+    <% if (statusDsp && statusDsp.totalDibayar > 0) { %>
+      <div class="hint">Sudah dibayar Rp<%= statusDsp.totalDibayar.toLocaleString('id-ID') %> dari total tagihan DSP — mengubah/menghapus tagihan di atas tidak mengubah riwayat pembayaran yang sudah tercatat.</div>
+    <% } %>
+  <% } %>
+</div>
+
+<div class="panel">
+  <h2 class="mt-0">Riwayat Pembayaran</h2>
+  <% if (riwayatPembayaran.length === 0) { %>
+    <p class="text-muted">Belum ada transaksi pembayaran.</p>
+  <% } else { %>
+  <table>
+    <thead><tr><th>No. Kwitansi</th><th>Tanggal</th><th>Item</th><th>Total</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+      <% riwayatPembayaran.forEach(t => { %>
+        <% const total = t.detail.reduce((s,d) => s + d.jumlah, 0); %>
+        <tr>
+          <td><%= t.noKwitansi %></td>
+          <td><%= new Date(t.tanggal).toLocaleDateString('id-ID') %></td>
+          <td class="text-muted"><%= t.detail.length %> item</td>
+          <td>Rp<%= total.toLocaleString('id-ID') %></td>
+          <td>
+            <% if (t.status === 'AKTIF') { %>
+              <span class="badge aktif">Aktif</span>
+            <% } else { %>
+              <span class="badge nonaktif">Dibatalkan</span>
+            <% } %>
+          </td>
+          <td><a href="/pembayaran/<%= t.id %>" class="btn small secondary">Lihat</a></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+  <% } %>
+</div>
+<%- include('../partials/footer') %>

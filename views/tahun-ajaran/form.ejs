@@ -1,0 +1,33 @@
+<%- include('../partials/header') %>
+<div class="page-header">
+  <h1><%= title %></h1>
+</div>
+
+<div class="panel">
+  <form class="stacked" method="post" action="<%= ta ? `/tahun-ajaran/${ta.id}` : '/tahun-ajaran' %>">
+    <div class="field">
+      <label for="label">Label Tahun Ajaran</label>
+      <input type="text" id="label" name="label" placeholder="2026/2027" value="<%= ta ? ta.label : '' %>" required />
+    </div>
+    <div class="field">
+      <label for="tanggalMulai">Tanggal Mulai</label>
+      <input type="date" id="tanggalMulai" name="tanggalMulai"
+        value="<%= ta ? new Date(ta.tanggalMulai).toISOString().slice(0,10) : '' %>" required />
+    </div>
+    <div class="field">
+      <label for="tanggalSelesai">Tanggal Selesai</label>
+      <input type="date" id="tanggalSelesai" name="tanggalSelesai"
+        value="<%= ta ? new Date(ta.tanggalSelesai).toISOString().slice(0,10) : '' %>" required />
+    </div>
+    <div class="field">
+      <label for="sppBulanan">Tarif SPP per Bulan (Rp)</label>
+      <input type="number" id="sppBulanan" name="sppBulanan" min="0" step="1000"
+        value="<%= tarif ? tarif.sppBulanan : '' %>" required />
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn">Simpan</button>
+      <a href="/tahun-ajaran" class="btn secondary">Batal</a>
+    </div>
+  </form>
+</div>
+<%- include('../partials/footer') %>

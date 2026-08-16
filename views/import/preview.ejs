@@ -1,0 +1,64 @@
+<%- include('../partials/header') %>
+<div class="page-header">
+  <h1>Preview Import</h1>
+</div>
+<p class="text-muted" style="margin-top:-12px">
+  Periksa hasil pemeriksaan di bawah sebelum konfirmasi. Baris berstatus "error" tidak akan diproses sama sekali — perbaiki di file lalu upload ulang jika perlu. Baris "dilewati" adalah data yang sudah ada di sistem.
+</p>
+
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="value"><%= sheets.reduce((s, x) => s + x.valid, 0) %></div>
+    <div class="label">Baris Siap Diimpor</div>
+  </div>
+  <div class="stat-card">
+    <div class="value"><%= sheets.reduce((s, x) => s + x.skip, 0) %></div>
+    <div class="label">Baris Dilewati (Duplikat)</div>
+  </div>
+  <div class="stat-card">
+    <div class="value"><%= sheets.reduce((s, x) => s + x.error, 0) %></div>
+    <div class="label">Baris Error</div>
+  </div>
+  <div class="stat-card">
+    <div class="value"><%= sheets.reduce((s, x) => s + x.warn, 0) %></div>
+    <div class="label">Peringatan</div>
+  </div>
+</div>
+
+<% sheets.forEach(sheet => { %>
+  <div class="panel">
+    <h2 class="mt-0"><%= sheet.label %></h2>
+    <% if (sheet.rows.length === 0) { %>
+      <p class="text-muted">Sheet ini kosong atau tidak diisi.</p>
+    <% } else { %>
+      <p class="text-muted">
+        <%= sheet.valid %> siap diimpor, <%= sheet.skip %> dilewati, <%= sheet.error %> error<% if (sheet.warn > 0) { %>, <%= sheet.warn %> dengan peringatan<% } %> dari <%= sheet.rows.length %> baris.
+      </p>
+      <% const flagged = sheet.rows.filter(r => r.status !== 'valid' || r.warning); %>
+      <% if (flagged.length > 0) { %>
+        <table>
+          <thead><tr><th>Baris</th><th>Status</th><th>Keterangan</th></tr></thead>
+          <tbody>
+            <% flagged.forEach(r => { %>
+              <% const isError = r.status === 'error'; const isWarn = r.status === 'valid' && r.warning; %>
+              <tr>
+                <td><%= r.row %></td>
+                <td><span class="badge <%= isError ? 'nonaktif' : isWarn ? 'warning' : 'aktif' %>"><%= isError ? 'Error' : isWarn ? 'Peringatan' : 'Dilewati' %></span></td>
+                <td><%= r.warning || r.message || '-' %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      <% } %>
+    <% } %>
+  </div>
+<% }) %>
+
+<div class="panel">
+  <form method="post" action="/import/confirm">
+    <input type="hidden" name="token" value="<%= token %>" />
+    <button type="submit" class="btn">Konfirmasi &amp; Simpan ke Database</button>
+    <a href="/import" class="btn secondary">Batal</a>
+  </form>
+</div>
+<%- include('../partials/footer') %>

@@ -1,0 +1,42 @@
+<%- include('../partials/header') %>
+<div class="page-header">
+  <h1>Kelas</h1>
+  <a href="/kelas/new<%= tahunAjaran ? `?tahunAjaranId=${tahunAjaran.id}` : '' %>" class="btn">+ Tambah Kelas</a>
+</div>
+
+<div class="toolbar">
+  <form method="get" action="/kelas" class="inline-form">
+    <label for="tahunAjaranId" class="text-muted">Tahun Ajaran:</label>
+    <select id="tahunAjaranId" name="tahunAjaranId" onchange="this.form.submit()">
+      <% semuaTahunAjaran.forEach(ta => { %>
+        <option value="<%= ta.id %>" <%= tahunAjaran && tahunAjaran.id === ta.id ? 'selected' : '' %>><%= ta.label %></option>
+      <% }) %>
+    </select>
+  </form>
+</div>
+
+<div class="panel" style="padding:0">
+  <% if (!tahunAjaran) { %>
+    <div class="empty-state">Belum ada tahun ajaran. <a href="/tahun-ajaran/new">Buat tahun ajaran</a> terlebih dahulu.</div>
+  <% } else if (list.length === 0) { %>
+    <div class="empty-state">Belum ada kelas untuk tahun ajaran <%= tahunAjaran.label %>.</div>
+  <% } else { %>
+  <table>
+    <thead>
+      <tr><th>Kelas</th><th>Jenjang</th><th>Wali Kelas</th><th>Jumlah Siswa</th><th></th></tr>
+    </thead>
+    <tbody>
+      <% list.forEach(k => { %>
+        <tr>
+          <td><%= k.nama %></td>
+          <td><%= k.jenjang.nama %></td>
+          <td><%= k.waliKelas || '-' %></td>
+          <td><%= k._count.siswaKelas %></td>
+          <td><a href="/kelas/<%= k.id %>/edit" class="btn small secondary">Edit</a></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+  <% } %>
+</div>
+<%- include('../partials/footer') %>

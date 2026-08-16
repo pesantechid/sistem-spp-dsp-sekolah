@@ -1,0 +1,68 @@
+<%- include('../partials/header') %>
+<% const kategoriLabelMap = { PRESTASI: 'Prestasi', KURANG_MAMPU: 'Kurang Mampu', YATIM: 'Yatim', PIATU: 'Piatu', LAINNYA: 'Lainnya' }; %>
+<div class="page-header">
+  <h1>Laporan Keringanan SPP</h1>
+</div>
+<p class="text-muted" style="margin-top:-12px">
+  Tahun Ajaran <%= tahunAjaranAktif.label %> &mdash; SPP normal Rp<%= sppNormal.toLocaleString('id-ID') %>/bulan.
+  <a href="/laporan/tunggakan">&larr; Laporan Tunggakan</a>
+</p>
+
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="value"><%= list.length %></div>
+    <div class="label">Total Siswa Dapat Keringanan</div>
+  </div>
+  <div class="stat-card">
+    <div class="value"><%= totalGratis %></div>
+    <div class="label">Gratis (100%)</div>
+  </div>
+  <div class="stat-card">
+    <div class="value"><%= totalPotongan %></div>
+    <div class="label">Potongan Sebagian</div>
+  </div>
+</div>
+
+<% if (perKategori.length > 0) { %>
+<div class="panel">
+  <h2 class="mt-0">Rekap per Kategori</h2>
+  <table>
+    <thead><tr><th>Kategori</th><th>Jumlah Siswa</th></tr></thead>
+    <tbody>
+      <% perKategori.forEach(k => { %>
+        <tr>
+          <td><%= kategoriLabelMap[k.kategori] || k.kategori %></td>
+          <td><%= k.jumlah %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+<% } %>
+
+<div class="panel" style="padding:0">
+  <% if (list.length === 0) { %>
+    <div class="empty-state">Belum ada siswa dengan keringanan SPP di tahun ajaran ini.</div>
+  <% } else { %>
+  <table>
+    <thead>
+      <tr>
+        <th>Nama</th><th>Kelas</th><th>Kategori</th><th>SPP/Bulan</th><th>Catatan</th><th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% list.forEach(s => { %>
+        <tr>
+          <td><a href="/siswa/<%= s.siswaId %>"><%= s.nama %></a></td>
+          <td><%= s.jenjangNama %> - <%= s.kelasNama %></td>
+          <td><%= kategoriLabelMap[s.kategori] || s.kategori %></td>
+          <td><%= s.gratis ? 'Gratis' : 'Rp' + s.sppOverride.toLocaleString('id-ID') %></td>
+          <td><%= s.catatan || '-' %></td>
+          <td><a href="/siswa/<%= s.siswaId %>" class="btn small secondary">Detail</a></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+  <% } %>
+</div>
+<%- include('../partials/footer') %>

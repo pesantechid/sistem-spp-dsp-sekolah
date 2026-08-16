@@ -1,0 +1,63 @@
+<%- include('../partials/header') %>
+<div class="page-header">
+  <h1>Pembayaran</h1>
+  <a href="/pembayaran/new" class="btn">+ Catat Pembayaran</a>
+</div>
+
+<div class="toolbar">
+  <form method="get" action="/pembayaran" class="inline-form">
+    <input type="text" name="q" placeholder="Cari nama siswa..." value="<%= q %>" />
+    <select name="kelasId">
+      <option value="">Semua Kelas</option>
+      <% kelasList.forEach(k => { %>
+        <option value="<%= k.id %>" <%= kelasId === k.id ? 'selected' : '' %>><%= k.jenjang.nama %> - <%= k.nama %></option>
+      <% }) %>
+    </select>
+    <select name="status">
+      <option value="">Semua Status</option>
+      <option value="AKTIF" <%= status === 'AKTIF' ? 'selected' : '' %>>Aktif</option>
+      <option value="DIBATALKAN" <%= status === 'DIBATALKAN' ? 'selected' : '' %>>Dibatalkan</option>
+    </select>
+    <input type="date" name="dari" value="<%= dari %>" title="Dari tanggal" />
+    <input type="date" name="sampai" value="<%= sampai %>" title="Sampai tanggal" />
+    <button type="submit" class="btn small secondary">Cari</button>
+    <% if (q || kelasId || status || dari || sampai) { %>
+      <a href="/pembayaran" class="btn small secondary">Clear Filter</a>
+    <% } %>
+  </form>
+  <a href="/pembayaran/export?q=<%= q %>&kelasId=<%= kelasId || '' %>&status=<%= status %>&dari=<%= dari %>&sampai=<%= sampai %>" class="btn small secondary">Export CSV</a>
+</div>
+
+<div class="panel" style="padding:0">
+  <% if (list.length === 0) { %>
+    <div class="empty-state">Belum ada transaksi pembayaran.</div>
+  <% } else { %>
+  <table>
+    <thead>
+      <tr><th>No. Kwitansi</th><th>Tanggal</th><th>Siswa</th><th>Item</th><th>Total</th><th>Dicatat Oleh</th><th>Status</th><th></th></tr>
+    </thead>
+    <tbody>
+      <% list.forEach(t => { %>
+        <% const total = t.detail.reduce((s,d) => s + d.jumlah, 0); %>
+        <tr>
+          <td><%= t.noKwitansi %></td>
+          <td><%= new Date(t.tanggal).toLocaleDateString('id-ID') %></td>
+          <td><%= t.siswa.namaLengkap %></td>
+          <td class="text-muted"><%= t.detail.length %> item</td>
+          <td>Rp<%= total.toLocaleString('id-ID') %></td>
+          <td class="text-muted"><%= t.dicatatOleh.nama %></td>
+          <td>
+            <% if (t.status === 'AKTIF') { %>
+              <span class="badge aktif">Aktif</span>
+            <% } else { %>
+              <span class="badge nonaktif">Dibatalkan</span>
+            <% } %>
+          </td>
+          <td><a href="/pembayaran/<%= t.id %>" class="btn small secondary">Lihat</a></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+  <% } %>
+</div>
+<%- include('../partials/footer') %>

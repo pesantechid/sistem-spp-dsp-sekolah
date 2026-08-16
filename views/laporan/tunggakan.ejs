@@ -1,0 +1,100 @@
+<%- include('../partials/header') %>
+<div class="page-header">
+  <h1>Laporan Tunggakan</h1>
+</div>
+<p class="text-muted" style="margin-top:-12px">
+  Tahun Ajaran <%= tahunAjaranAktif.label %>
+  &mdash; <a href="/laporan/keringanan-spp">Lihat Laporan Keringanan SPP &rarr;</a>
+</p>
+
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="value"><%= totalSiswaMenunggak %></div>
+    <div class="label">Siswa Menunggak</div>
+  </div>
+  <div class="stat-card">
+    <div class="value">Rp<%= totalNilaiTunggakan.toLocaleString('id-ID') %></div>
+    <div class="label">Total Nilai Tunggakan</div>
+  </div>
+</div>
+
+<div class="toolbar">
+  <form method="get" action="/laporan/tunggakan" class="inline-form">
+    <input type="text" name="q" placeholder="Cari nama siswa..." value="<%= q %>" />
+    <select name="jenjangId" onchange="this.form.submit()">
+      <option value="">Semua Jenjang</option>
+      <% jenjangList.forEach(j => { %>
+        <option value="<%= j.id %>" <%= jenjangId === j.id ? 'selected' : '' %>><%= j.nama %></option>
+      <% }) %>
+    </select>
+    <select name="kelasId" onchange="this.form.submit()">
+      <option value="">Semua Kelas</option>
+      <% kelasList.forEach(k => { %>
+        <option value="<%= k.id %>" <%= kelasId === k.id ? 'selected' : '' %>><%= k.jenjang.nama %> - <%= k.nama %></option>
+      <% }) %>
+    </select>
+    <label class="bulan-check" style="padding:8px 12px">
+      <input type="checkbox" name="semua" value="1" <%= tampilkanSemua ? 'checked' : '' %> onchange="this.form.submit()" />
+      Tampilkan semua (termasuk lunas)
+    </label>
+    <button type="submit" class="btn small secondary">Cari</button>
+    <% if (q || jenjangId || kelasId || tampilkanSemua) { %>
+      <a href="/laporan/tunggakan" class="btn small secondary">Clear Filter</a>
+    <% } %>
+  </form>
+  <a href="/laporan/tunggakan/export?q=<%= q %>&jenjangId=<%= jenjangId || '' %>&kelasId=<%= kelasId || '' %>&semua=<%= tampilkanSemua ? '1' : '' %>" class="btn small secondary">Export CSV</a>
+</div>
+
+<% if (perKelas.length > 0) { %>
+<div class="panel">
+  <h2 class="mt-0">Rekap per Kelas</h2>
+  <table>
+    <thead><tr><th>Kelas</th><th>Siswa Menunggak</th><th>Total Tunggakan</th></tr></thead>
+    <tbody>
+      <% perKelas.forEach(k => { %>
+        <tr>
+          <td><%= k.jenjangNama %> - <%= k.kelasNama %></td>
+          <td><%= k.jumlahSiswaMenunggak %></td>
+          <td>Rp<%= k.totalTunggakan.toLocaleString('id-ID') %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+<% } %>
+
+<div class="panel" style="padding:0">
+  <% if (list.length === 0) { %>
+    <div class="empty-state">
+      <% if (tampilkanSemua) { %>
+        Tidak ada siswa yang cocok dengan filter ini.
+      <% } else { %>
+        Tidak ada siswa yang menunggak untuk filter ini. 🎉
+      <% } %>
+    </div>
+  <% } else { %>
+  <table>
+    <thead>
+      <tr>
+        <th>Nama</th><th>Kelas</th><th>Bulan SPP Nunggak</th><th>Tunggakan SPP</th>
+        <th>Tunggakan Awal</th><th>Sisa DSP</th><th>Total</th><th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% list.forEach(s => { %>
+        <tr>
+          <td><a href="/siswa/<%= s.siswaId %>"><%= s.nama %></a></td>
+          <td><%= s.jenjangNama %> - <%= s.kelasNama %></td>
+          <td><%= s.jumlahBulanBelumBayar %></td>
+          <td>Rp<%= s.tunggakanSpp.toLocaleString('id-ID') %></td>
+          <td>Rp<%= s.sisaTunggakanAwal.toLocaleString('id-ID') %></td>
+          <td>Rp<%= s.sisaDsp.toLocaleString('id-ID') %></td>
+          <td><strong>Rp<%= s.totalTunggakan.toLocaleString('id-ID') %></strong></td>
+          <td><a href="/pembayaran/new?siswaId=<%= s.siswaId %>" class="btn small">Bayar</a></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+  <% } %>
+</div>
+<%- include('../partials/footer') %>
