@@ -306,6 +306,19 @@ docker buildx build \
 Build ini butuh emulasi untuk arsitektur yang bukan arsitektur komputer
 Anda, jadi lebih lambat dari build biasa — wajar, tunggu sampai selesai.
 
+> **Command manual `docker push`/`docker pull`** (referensi, biasanya tidak
+> perlu dipakai langsung karena `buildx build --push` di atas sudah
+> mencakup push, dan `docker compose pull` di langkah 3 sudah mencakup
+> pull): kalau suatu saat perlu push/pull manual satu tag saja (mis. habis
+> `docker build` biasa tanpa buildx, atau cuma mau re-tag), commandnya:
+> ```bash
+> docker push ronisky/spp-dsp-sekolah:latest
+> docker pull ronisky/spp-dsp-sekolah:latest
+> ```
+> Catatan: `docker push` biasa (tanpa buildx) hanya push **arsitektur
+> komputer Anda saja**, bukan multi-platform — untuk multi-platform tetap
+> pakai `docker buildx build --push` seperti langkah 2.
+
 > **Catatan keamanan:** repo `ronisky/spp-dsp-sekolah` di Docker Hub ini
 > **public** — image membawa source code lengkap (bukan data siswa; data
 > ada di volume, terpisah dari image) plus default kredensial seed
