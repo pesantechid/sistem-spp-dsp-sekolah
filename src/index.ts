@@ -21,6 +21,12 @@ import importRouter from "./routes/import.routes.ts";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SQLiteStore = SQLiteStoreFactory(session);
 
+const sessionDbDir = process.env.SESSION_DB_DIR
+  ? path.isAbsolute(process.env.SESSION_DB_DIR)
+    ? process.env.SESSION_DB_DIR
+    : path.join(__dirname, "..", process.env.SESSION_DB_DIR)
+  : path.join(__dirname, "..");
+
 const app = express();
 
 app.set("view engine", "ejs");
@@ -31,7 +37,7 @@ app.use(express.static(path.join(__dirname, "..", "public")));
 
 app.use(
   session({
-    store: new SQLiteStore({ db: "sessions.db", dir: path.join(__dirname, "..") }) as unknown as session.Store,
+    store: new SQLiteStore({ db: "sessions.db", dir: sessionDbDir }) as unknown as session.Store,
     secret: process.env.SESSION_SECRET || "ganti-secret-ini-di-env-production",
     resave: false,
     saveUninitialized: false,

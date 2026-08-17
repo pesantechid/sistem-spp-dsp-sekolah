@@ -1,8 +1,8 @@
-# Sistem Manajemen SPP & DSP MTs
+# Sistem Manajemen SPP & DSP Sekolah
 
 Aplikasi web internal untuk mencatat dan memantau pembayaran SPP (uang
 sekolah bulanan), DSP (uang gedung/pembangunan), dan tunggakan awal
-siswa di sebuah MTs (madrasah tsanawiyah). Dibuat untuk dijalankan
+siswa di sebuah sekolah. Dibuat untuk dijalankan
 **lokal/offline** di satu komputer (server) dan diakses dari komputer
 lain di jaringan yang sama (LAN) lewat browser.
 
@@ -18,6 +18,7 @@ database server terpisah, cukup satu file `dev.db`.
 - [Kenapa SQLite (bukan MySQL/MariaDB)?](#kenapa-sqlite-bukan-mysqlmariadb)
 - [Instalasi & Setup Pertama Kali](#instalasi--setup-pertama-kali)
 - [Menjalankan Aplikasi](#menjalankan-aplikasi)
+- [Menjalankan dengan Docker](#menjalankan-dengan-docker)
 - [Panduan Penggunaan](#panduan-penggunaan)
   - [1. Tahun Ajaran & Tarif](#1-tahun-ajaran--tarif)
   - [2. Kelas & Siswa](#2-kelas--siswa)
@@ -94,7 +95,7 @@ sudah ter-install otomatis via `npm install`. Tidak ada service
 tambahan yang perlu dijalankan/dimonitor, tidak ada user/password DB
 terpisah untuk dikelola.
 
-**Cukup kuat untuk skala satu MTs?** Ya. Perkiraan kasar untuk 3
+**Cukup kuat untuk skala satu sekolah?** Ya. Perkiraan kasar untuk 3
 jenjang (VII/VIII/IX), ±300–900 siswa aktif per tahun, dan riwayat
 10+ tahun ajaran: baris terbanyak ada di tabel transaksi pembayaran
 SPP bulanan, sekitar 900 siswa × 12 bulan × 10 tahun ≈ **~108.000
@@ -142,7 +143,7 @@ soal database, tapi soal keamanan & keandalan akses publik:
   ke database server (mis. Postgres/MySQL terkelola) — Prisma
   membuat perpindahan ini relatif terkontain (tinggal ganti
   datasource/adapter), tapi ini baru relevan kalau skala kebutuhan
-  jauh melebihi satu MTs.
+  jauh melebihi satu sekolah.
 
 ## Instalasi & Setup Pertama Kali
 
@@ -199,6 +200,143 @@ Server berjalan di `http://localhost:3000` (port bisa diubah lewat
 env `PORT`). Untuk diakses dari komputer/HP lain di jaringan yang
 sama, gunakan `http://<IP-komputer-server-ini>:3000` — pastikan
 firewall komputer server mengizinkan koneksi masuk ke port tersebut.
+
+## Menjalankan dengan Docker
+
+Alternatif dari [Instalasi & Setup Pertama Kali](#instalasi--setup-pertama-kali)
+di atas: tidak perlu install Node.js/npm sama sekali, cukup **Docker**
+(dan **Docker Compose**, sudah ikut di Docker Desktop). Cocok kalau rekan
+yang mau menjalankan aplikasi ini repot install dependency Node secara
+manual (`better-sqlite3` butuh kompilasi native yang kadang bermasalah
+per-komputer).
+
+Data (`dev.db`, `sessions.db`, file upload logo/TTD/kop surat) disimpan di
+**Docker named volume** supaya tetap ada walau container di-rebuild/restart.
+
+### A. Build & jalankan di komputer sendiri
+
+```bash
+cp .env.example .env
+# edit .env: minimal ganti SESSION_SECRET
+
+docker compose up -d --build
+```
+
+Saat pertama kali start, entrypoint otomatis menjalankan
+`prisma migrate deploy` lalu `npm run seed` (aman dijalankan berulang —
+kalau data sudah ada, dilewati). Cek log kredensial admin pertama:
+
+```bash
+docker compose logs app
+```
+
+Buka `http://localhost:3000` (atau `http://<IP-komputer-ini>:3000` dari
+komputer lain di jaringan yang sama).
+
+### B. Distribusi ke rekan lain (tanpa mereka perlu install apa pun selain Docker)
+
+Setelah image berhasil di-build di komputer Anda (langkah A di atas),
+image bisa dikemas jadi satu file dan dikirim, tidak perlu source code
+maupun proses build ulang di komputer rekan:
+
+```bash
+# Di komputer yang sudah build image:
+docker save ronisky/spp-dsp-sekolah:latest | gzip > spp-sekolah.tar.gz
+```
+
+Kirim `spp-sekolah.tar.gz`, `docker-compose.yml`, dan `.env.example` ke
+rekan (mis. lewat flashdisk/drive — file ini berisi image aplikasi, aman
+dikirim offline). Di komputer rekan (hanya butuh Docker terpasang):
+
+```bash
+docker load -i spp-sekolah.tar.gz
+
+cp .env.example .env
+# edit .env: minimal ganti SESSION_SECRET
+
+docker compose up -d
+```
+
+`docker compose` akan memakai image yang baru di-load (bukan build ulang)
+karena `docker-compose.yml` sudah menunjuk ke nama image yang sama
+(`image: ronisky/spp-dsp-sekolah:latest`).
+
+> **Catatan arsitektur:** `docker save`/`docker load` cuma membawa image
+> untuk **satu arsitektur** (arsitektur komputer yang menjalankan
+> `docker build`/`docker compose up --build`). Kalau komputer Anda Mac
+> Apple Silicon tapi rekan pakai Windows/Linux (umumnya `amd64`), image
+> hasil `docker save` di Mac **tidak akan jalan** di komputer rekan. Untuk
+> distribusi lintas-arsitektur, pakai cara **C** di bawah (build
+> multi-platform sekali, lalu pull dari registry) — bagian ini (**B**)
+> cuma cocok kalau komputer Anda dan rekan **sama-sama arsitekturnya**
+> (mis. sama-sama Windows/Linux `amd64`, atau sama-sama Mac Apple Silicon).
+
+### C. Build multi-platform (amd64 + arm64) & push ke registry
+
+Cara ini yang direkomendasikan kalau rekan makin banyak, tidak semuanya
+komputer yang sama arsitekturnya (Windows/Linux `amd64` vs Mac Apple
+Silicon `arm64`), atau tidak mau kirim file `.tar.gz` manual tiap ada
+update. Image di-build untuk **kedua arsitektur sekaligus dalam satu tag**
+lewat Docker Buildx — Docker otomatis pilih layer yang cocok saat
+`docker pull`/`docker compose pull`, rekan tidak perlu tahu/pilih apa-apa.
+
+Registry yang dipakai: **Docker Hub** (`docker.io`), akun `ronisky`,
+repo `spp-dsp-sekolah`.
+
+**1. Login ke Docker Hub** (sekali saja per komputer). Disarankan pakai
+[Access Token](https://hub.docker.com/settings/security) (Account
+Settings → Security → New Access Token) daripada password akun:
+
+```bash
+docker login -u ronisky
+# masukkan password atau access token saat diminta
+```
+
+**2. Build multi-arch & push** (butuh Docker Buildx — bawaan Docker
+Desktop/OrbStack terbaru, cek dengan `docker buildx ls`):
+
+```bash
+docker buildx build \
+  --platform linux/amd64,linux/arm64 \
+  -t ronisky/spp-dsp-sekolah:latest \
+  -t ronisky/spp-dsp-sekolah:v1.0.0 \
+  --push .
+```
+
+Build ini butuh emulasi untuk arsitektur yang bukan arsitektur komputer
+Anda, jadi lebih lambat dari build biasa — wajar, tunggu sampai selesai.
+
+> **Catatan keamanan:** repo `ronisky/spp-dsp-sekolah` di Docker Hub ini
+> **public** — image membawa source code lengkap (bukan data siswa; data
+> ada di volume, terpisah dari image) plus default kredensial seed
+> (`admin`/`admin123` kalau `SEED_ADMIN_*` tidak diisi). Siapa pun yang
+> menjalankan image ini **wajib** ganti `SESSION_SECRET` dan
+> `SEED_ADMIN_PASSWORD` sendiri di `.env` sebelum expose ke jaringan —
+> lihat langkah berikut.
+
+**3. Jalankan di komputer rekan** (pull dari registry — tidak perlu
+build, tidak perlu kirim file manual, dan otomatis dapat arsitektur yang
+benar baik di Windows, Linux, maupun Mac):
+
+```bash
+cp .env.example .env
+# edit .env: WAJIB ganti SESSION_SECRET, dan sebaiknya SEED_ADMIN_PASSWORD
+
+docker compose pull
+docker compose up -d
+```
+
+### Backup manual (Docker volume)
+
+Karena data ada di named volume (bukan folder biasa), backup file `dev.db`
+dilakukan lewat container sementara. Nama volume mengikuti pola
+`<nama-folder-project>_db_data` (mis. kalau folder project bernama `app`,
+volume-nya `app_db_data` — cek nama persisnya dengan `docker volume ls`):
+
+```bash
+docker run --rm -v app_db_data:/data -v "$(pwd)":/backup alpine \
+  tar czf /backup/db-backup.tar.gz -C /data .
+```
 
 ## Panduan Penggunaan
 

@@ -30,7 +30,7 @@ export async function generateNoSurat(kodeSuratPrefix: string | null | undefined
     select: { noSurat: true },
   });
   const urut = jumlah.length + 1;
-  const prefix = kodeSuratPrefix?.trim() || "MTs";
+  const prefix = kodeSuratPrefix?.trim() || "Sekolah";
   return `${String(urut).padStart(3, "0")}/${prefix}/${romawi(tanggal.getMonth() + 1)}/${tanggal.getFullYear()}`;
 }
 

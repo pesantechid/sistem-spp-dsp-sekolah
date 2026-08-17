@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title><%= title %> — <%= (typeof pengaturanGlobal !== "undefined" && pengaturanGlobal && pengaturanGlobal.namaAplikasi) || "SPP MTs" %></title>
+  <title><%= title %> — <%= (typeof pengaturanGlobal !== "undefined" && pengaturanGlobal && pengaturanGlobal.namaAplikasi) || "SPP Sekolah" %></title>
   <% if (typeof pengaturanGlobal !== "undefined" && pengaturanGlobal && pengaturanGlobal.deskripsiAplikasi) { %>
     <meta name="description" content="<%= pengaturanGlobal.deskripsiAplikasi %>" />
   <% } %>
@@ -19,7 +19,7 @@
       <% if (typeof pengaturanGlobal !== "undefined" && pengaturanGlobal && pengaturanGlobal.logoPath) { %>
         <img src="<%= pengaturanGlobal.logoPath %>" alt="Logo" class="brand-logo" />
       <% } %>
-      <%= (typeof pengaturanGlobal !== "undefined" && pengaturanGlobal && pengaturanGlobal.namaAplikasi) || "SPP MTs" %>
+      <%= (typeof pengaturanGlobal !== "undefined" && pengaturanGlobal && pengaturanGlobal.namaAplikasi) || "SPP Sekolah" %>
     </a>
     <nav>
       <a href="/" class="<%= title === 'Dashboard' ? 'active' : '' %>">Dashboard</a>

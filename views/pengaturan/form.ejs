@@ -7,8 +7,8 @@
 <form method="post" action="/pengaturan" class="stacked">
   <div class="field">
     <label>Nama Aplikasi</label>
-    <input type="text" name="namaAplikasi" value="<%= pengaturan.namaAplikasi || '' %>" placeholder="mis. SPP MTs Al-Hidayah" />
-    <div class="hint">Tampil di topbar aplikasi dan judul tab browser. Kosongkan untuk pakai default "SPP MTs".</div>
+    <input type="text" name="namaAplikasi" value="<%= pengaturan.namaAplikasi || '' %>" placeholder="mis. SPP Sekolah Al-Hidayah" />
+    <div class="hint">Tampil di topbar aplikasi dan judul tab browser. Kosongkan untuk pakai default "SPP Sekolah".</div>
   </div>
   <div class="field">
     <label>Deskripsi Aplikasi</label>
@@ -34,7 +34,7 @@
   </div>
   <div class="field">
     <label>Kode Prefix Surat</label>
-    <input type="text" name="kodeSuratPrefix" value="<%= pengaturan.kodeSuratPrefix || '' %>" placeholder="mis. MTs.../B" />
+    <input type="text" name="kodeSuratPrefix" value="<%= pengaturan.kodeSuratPrefix || '' %>" placeholder="mis. Sekolah.../B" />
     <div class="hint">Dipakai di nomor surat: {urut}/{prefix}/{bulan romawi}/{tahun}</div>
   </div>
   <hr class="sep" />

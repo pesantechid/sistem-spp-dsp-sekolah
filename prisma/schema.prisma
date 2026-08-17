@@ -1,4 +1,4 @@
-// Prisma schema — Sistem Manajemen SPP & DSP MTs
+// Prisma schema — Sistem Manajemen SPP & DSP Sekolah
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {

@@ -1,0 +1,21 @@
+services:
+  app:
+    build: .
+    image: ronisky/spp-dsp-sekolah:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: file:./storage/dev.db
+      SESSION_DB_DIR: ./storage
+    ports:
+      - "${PORT:-3000}:${PORT:-3000}"
+    volumes:
+      - db_data:/app/storage
+      - uploads_data:/app/public/uploads
+      - tmp_imports_data:/app/data/tmp-imports
+
+volumes:
+  db_data:
+  uploads_data:
+  tmp_imports_data:

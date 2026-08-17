@@ -46,7 +46,7 @@ export async function buildImportTemplate(): Promise<Buffer> {
   ]);
 
   const wb = new ExcelJS.Workbook();
-  wb.creator = "Sistem SPP & DSP MTs";
+  wb.creator = "Sistem SPP & DSP Sekolah";
   wb.created = new Date(0);
 
   const listSheet = wb.addWorksheet("_Daftar", { state: "veryHidden" });
